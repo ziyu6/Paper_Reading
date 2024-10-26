@@ -52,6 +52,8 @@
 
 ## **Multi-modal：**
 ### 1. PIRenderer：Controllable Portrait Image Generation via Semantic Neural Rendering
+<mark>一句话解读:这篇是之前做audio driven talking head的时候看的，主要是用了3dmm参数控制面部表情、头部姿势和平移等。
+我可借鉴的点就是3dmm参数＋说话时嘴部用流式audio控制<mark>
 1. 通过 语义神经渲染 生成 可控肖像图像
 2. 通过控制现有面部的运动来生成肖像图像是对社交媒体行业具有重大影响的一项重要任务。为了易于使用和直观控制，应使用语义上有意义且完全解缠的参数作为modifications。然而，许多现有技术不提供如此细粒度的控制或使用间接编辑方法，如：模仿其他个体的动作。在本文中，提出了一种 Portrait Image Neural Renderer（PIRenderer），利用三维可变形面部模型（3DMM）的参数来控制面部运动。所提出的模型可以根据直观的修改生成具有准确运动的逼真的肖像图像。直接和间接编辑任务的实验证明了该模型的优越性。同时，我们进一步扩展该模型，通过从音频输入中提取顺序运动来处理音频驱动的面部重演任务。我们证明，我们的模型可以仅从单个参考图像和驱动音频流生成具有令人信服的动作的连贯视频。我们的源代码可在 https://github.com/RenYurui/PIRender 获取。
 3. 如下图，PIRender可以生成逼真的人像图片根据：tagert motion / target image / target audio
