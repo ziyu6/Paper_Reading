@@ -50,6 +50,62 @@
 
 
 
+
+### 2.BASE TTS: Lessons from building a billion-parameter Text-to-Speech model on 100K hours of data
+<mark>一句话解读:一个大模型：数据量大（100kh）、参数量大（10亿参数），并设计了一个测试集衡量模型涌现能力（通过提升模型参数规模和训练数据规模，测试模型是否具有更好的性能）<mark>
+#### Abstract:
+1. 通过100K 小时的数据 构建 10亿参数的TTS
+2. We introduce a text-to-speech (TTS) model called BASE TTS, which stands for Big Adaptive Streamable TTS with Emergent abilities.   大的、自适应的、流式的、具有涌现能力的TTS
+3. 它部署了一个 10 亿参数的自回归 Transformer，将原始文本转换为离散代码（“"speechcodes"”），然后用一个基于卷积的解码器，以增量、流式传输的方式将这些speechcodes转换为波形。
+4. 设计了一个专门的测试集来衡量TTS的emergent 能力。
+
+#### Introduction：
+1. BASE TTS follows the approach of casting TTS as a next-token-prediction problem, inspired by the success of LLMs。这种方法通常与大量训练数据结合应用，以实现强大的多语言和多说话人能力.
+2. 我们的目标是提高总体 TTS 质量，并研究 缩放定律 如何影响模型为具有挑战性的文本输入生成适当韵律和表达的能力，类似于LLM 如何通过数据和参数 缩放 获得新能力，也就是“涌现”能力。
+3. 主要贡献： 
+4. BASE TTS是目前最大的TTS模型，且主观评估胜过其他baseline
+5. 提出一个测试集，可以作为大规模 TTS 模型的文本理解的主观评估基准，并且在该测试集上对不同参数规模的BASE TTS做了实验，验证了随着数据集大小和参数数量的增加，质量单调提高。（即： scaling 对 emergent 能力的影响）
+6. 引入一种新型的 离散语音表示方式， 能够只capture 音素和韵律信息，且在非常高的压缩（量化）等级仍能还原回高质量音频。
+#### Model：
+1. 模型架构：
+![image](https://github.com/user-attachments/assets/95746ca7-1b7f-49f5-b71d-7b5c54f5a207)
+模型主体由一个transformer-based 自回归模型构成，其输入由三部分组成：音素序列（text  embedding) + 对应的speech codes(由speech tokenizer提取得到的） + 目标说话人audio经过reference encoder得到的speaker embedding， 模型自回归的生成对应的 具有目标说话人音色的 speech codes， 再通过decoder还原为语音波形
+
+2. WaveLM-based  speech tokenizer:（上图中的第一个结构）
+我们的目标是开发包含语音和韵律信息的语音代码，但与说话者身份、录音条件和音频信号中的其他特征无关。为此，我们引入了一种基于从预训练的 WavLM 模型 中提取的特征的 语音标记器，并通过鼓励解缠说话者身份的损失进行了进一步训练。
+如下图，首先将audio通过WavLM model得到提取的hidden states，接着将隐层特征分别通过content回归器和speaker回归器，都通过一个encoder，接着对content相关特征过vq离散化，对speaker相关特征过speaker extractor获得对应的speaker embedding，做了三个loss
+(1) 把content相关特征和speaker embedding concat之后过decoder得到的频谱与GT做 重建Loss 
+(2) 对 speaker embedding做 对比Loss : 最大化来自同一说话人的样本之间的相似性，并最小化来自不同说话人的样本之间的相似性
+(3) 将 content 相关特征 通过冻结speaker extractor的网络梯度回传得到的embedding与speaker embedding做余弦相似度loss, 可以理解为content 特征 与 speaker 特征越远离，说明说话人音色解缠的越好
+![image](https://github.com/user-attachments/assets/3dcc20b3-3c1d-4f65-b313-b7f22e295f4d)
+3. Autoregressive speech modeling (SpeechGPT)
+主体的自回归模型 是一个 GPT2 架构自回归模型，从头训的，就是基础的gpt2，没啥改变
+4. Decoder部分：
+主要的改进是：解码器不是将语音代码作为输入，而是将自回归 Transformer 的最后一个隐藏状态作为输入。我们这样做是因为密集的潜在表示提供了比单个语音代码更丰富的信息
+![image](https://github.com/user-attachments/assets/cc9d1ffb-fc2e-48e7-af29-4ece9689a269)
+
+#### Experiment:
+1. 我们创建了一个由 10 万小时未标记的公共领域语音数据组成的数据集。整体数据集以英语数据为主（超过 90%），其次是德语、荷兰语、西班牙语。
+2. 为了验证缩放定律对模型性能的影响，做了三个不同大小的模型：
+![image](https://github.com/user-attachments/assets/39c35cec-bfdc-409c-b9d7-677acea50f7c)
+3. 结果如下：基本上都是随着模型越大效果越好
+![image](https://github.com/user-attachments/assets/048f64aa-fa0d-4f71-9e1e-d1d6fa799662)
+
+#### Conclusion
+1. 我们引入了 BASE TTS，这是一种 GPT 风格的 TTS 系统，使用新颖的基于 SSL 的 speechcode 作为中间表示和解码器。无论是在参数还是训练数据方面，这都是我们所知的同类模型中最大的。我们根据包括 Tortoise、Bark 和 YourTTS 在内的基线展示了最先进的新 TTS 结果。
+2. 我们的方法指向 LTTS 模型的潜在缩放定律 [92]，其中需要更大量的语音和其他（文本、图像）数据来支持多模态目标 [93] 并在 TTS 中开辟新天地。我们的方法仍然存在一些局限性：a) BASE TTS 有时会产生幻觉和中断，我们会产生超出文本预期的额外或不完整的音频。这是自回归 LM 方法的一个固有问题，； b) 为 GPT 式 TTS 选择正确的离散表示至关重要。需要更多的研究来确定语音代码的不同属性如何转化为端到端系统质量。
+
+
+
+
+
+
+
+
+
+
+
+
 ## **Multi-modal：**
 ### 1. PIRenderer：Controllable Portrait Image Generation via Semantic Neural Rendering
 <mark>一句话解读:这篇是之前做audio driven talking head的时候看的，主要是用了3dmm参数控制面部表情、头部姿势和平移等。
