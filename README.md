@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/6b1ac746-111d-4eb4-9036-93ea2a670fdd)![image](https://github.com/user-attachments/assets/9d349b12-b9aa-4b5a-a29b-aed7d99fd388)![image](https://github.com/user-attachments/assets/c37c2cc8-8be2-4aa1-a278-74b6c64b3cc1)# Paper_Reading
+# Paper_Reading
 主要阅读TTS、VC、LLM、ML、Multimodel相关方向的论文，努力周更！
 
 ## **TTS方向：**
