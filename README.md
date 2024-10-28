@@ -1,4 +1,4 @@
-# Paper_Reading
+![image](https://github.com/user-attachments/assets/6b1ac746-111d-4eb4-9036-93ea2a670fdd)![image](https://github.com/user-attachments/assets/9d349b12-b9aa-4b5a-a29b-aed7d99fd388)![image](https://github.com/user-attachments/assets/c37c2cc8-8be2-4aa1-a278-74b6c64b3cc1)# Paper_Reading
 主要阅读TTS、VC、LLM、ML、Multimodel相关方向的论文，努力周更！
 
 ## **TTS方向：**
@@ -100,6 +100,27 @@
 
 
 
+## **音乐合成：**
+### 1. Editing Music with Melody and Text: Using ControlNet for Diffusion Transformer
+<mark>一句话解读:使用旋律和文本编辑音乐：使用 ControlNet 进行 Diffusion Transformer<mark>
+1. 使用梅尔频谱图表示和基于 UNet 的模型结构，生成音乐的质量和长度仍然存在挑战。
+2. 为了解决这些限制，我们提出了一种使用 Diffusion Transformer（DiT）的新方法，并通过 ControlNet 增加了一个额外的控制分支。
+3. 引入了一种新颖的 top-k constant-Q Transform representation as melody prompt,，与以前的表示相比减少了歧义。
+4. 为了有效平衡文本和旋律提示的控制信号，我们采用了逐步mask melody prompt 的课程学习策略，从而使训练过程更加稳定。
+5. Top-k CQT：扩展 CQT以获得前 k 个最突出的音高值，提出了更精确和灵活的旋律表示。对于立体声音频输入，我们首先计算左声道和右声道的 128 个 bin 的 CQT，然后应用 argmax 运算以保留每个声道中每帧的 4 个最突出的音高。
+![image](https://github.com/user-attachments/assets/73702248-ee10-4a0a-a52d-7bd7cae0fb27)
+6. 渐进式课程屏蔽策略：过于精确的旋律提示可能会将附加的音乐元素（例如音色）合并到条件信息中。另一方面，由于旋律提示在时间上与目标音频对齐，因此模型更有可能学习旋律提示和音频之间的直接关系，而不是依赖于高级文本提示。最初，所有旋律提示都被屏蔽，允许模型学习用空旋律提示生成音乐。随着训练的进行，音级方向的掩码比率逐渐减小，使模型能够逐步学习合并旋律提示。在初始全掩蔽阶段之后，保留 top-1 旋律提示，而 top-2、top-3 和 top-4 旋律提示则被随机掩蔽和打乱。
+7. DiT with ControlNet: ControlNet-Transformer 复制前 N 个 Transformer 块作为控制分支。第 i 个可训练复制块的输出在通过附加的零初始化线性层后，与第 i 个冻结块的输出相结合，并用作第 (i + 1) 个冻结块的输入。本设计保持了DiT模型原有的连接结构，实现了ControlNet结构的无缝集成，同时保留了Transformer结构的核心优势。
+![image](https://github.com/user-attachments/assets/3a09e325-28ee-4f60-ac26-62073a47f756)
+
+8. 实验：客观指标表明，该模型在text to music和music editing任务上均强于baseline MusicGen
+![image](https://github.com/user-attachments/assets/4db63f1d-a770-4d5a-b0a3-54e5a8d1a949)
+
+9. 表 II 列出了文本音乐一致性和音频质量的平均 MOS 分数。主观结果清楚地表明，我们的模型在这两项任务中都优于 MusicGEN，在音乐编辑任务中优势尤其显着。
+![image](https://github.com/user-attachments/assets/6c5192a2-e22a-4e11-9d88-ca7595964df7)
+
+10. 在本文中，我们提出了一种新颖的音乐生成和编辑方法，旨在支持长格式和可变长度的音乐以及文本和旋律提示。为了实现这一目标，我们将 ControlNet 集成到 DiT 结构中，并引入一种新颖的 top-k CQT 表示作为旋律提示，提供更精确、更细粒度的旋律控制。主观和客观结果都表明，我们的模型在保持强大的文本到音乐生成能力的同时，在音乐编辑方面表现出色，并在文本和旋律提示之间实现了更加平衡的控制。
+
 
 
 
@@ -135,3 +156,64 @@
 13. 我们的模型比DAVS能生成更丰富的头部运动和嘴部细节：
 ![image](https://github.com/user-attachments/assets/42e6418a-9e70-45a1-b8ae-06320644644f)
 14. 我们提出了 PIRenderer，一种高效的肖像图像神经渲染器，能够通过语义上有意义的参数来控制面部。结合 3DMM 的先验，我们的模型可以通过根据用户指定的系数修改面部表情、头部姿势和平移来对现实世界的肖像图像进行直观的编辑。同时，它还可以执行动作模仿任务。在与主体无关的运动描述符的指导下，该模型可以生成具有维护良好的源身份的连贯视频。我们相信，通过灵活的图形控制生成神经网络可以实现许多令人兴奋的应用。音频驱动的面部重演任务的扩展提供了一个示例，并显示了这种组合的潜力。  
+
+
+### 2.Audio-visual Generalized Zero-shot Learning the Easy Way
+<mask>视听泛化零样本学习，理解视频中音频和视觉线索之间的复杂关系。<mask>
+1. 视听泛化零样本学习是一个快速发展的领域，旨在理解视频中音频和视觉线索之间的复杂关系。总体目标是利用从可见类中获得的insight，从以前未见过的实例中识别实例.
+2. Audio-visual learning：视听学习问题，从视频中学习两个不同模态之间的视听相关性。这样的跨模态对齐有利于各种视听任务。在这项工作中，我们的主要重点是学习与文本嵌入对齐的音视频表示，用于广义零样本学习，这是一个比前述任务提出更多挑战的任务。
+3. 先前的方法主要利用synchronized auto-encoders同步自编码器来重建视听属性，这些属性是由交叉注意力transformers和投影文本嵌入提供的。然而，这些方法不能有效地捕获预训练语言对齐嵌入中固有的跨模态特征和类标签嵌入之间的复杂关系。
+4. 为了克服这些瓶颈，我们提出了一个简单而有效的Easy Audio-Vis Generalized零样本学习框架，命名为EZ - AVGZL，它将音视频嵌入与转换后的文本表示进行对齐。它利用单个有监督的文本视听对比损失来学习视听和文本模态之间的对齐，摆脱了传统的重建跨模态特征和文本嵌入的方法。
+5. 性能对比：
+![image](https://github.com/user-attachments/assets/3db3dffd-c6f5-46bf-aa52-6e24fce63576)
+6. Method:
+![image](https://github.com/user-attachments/assets/e23b2354-bb3e-4fd5-a7f2-317276075afa)
+7. 文本输入经过冻结的text encoder得到初始class embedding ti, ti通过最大可分离性和保留语义优化得到wi；另一边，video和audio分别通过video encoder和audio encoder得到相应的embedding，交叉注意力变换模块从单模态编码器中提取视觉和音频特征(vi , ai)，生成多模态表示。最后，用一个非线性相似函数被对齐表示x和相应的类嵌入wi。对于同一类别：最小化相似度score和1之间的距离；对于不同类别，最小化相似度score和0之间的距离。
+8. 实验：VGGSound-GZSL，UCF-GZSL，ActivityNet-GZSL 
+9. 与以前的视听广义零样本学习方法相比，我们在可见类和未见类的所有指标中都取得了最好的结果。
+![image](https://github.com/user-attachments/assets/20009164-8ae3-4f7d-a153-d42d777358f0)
+![image](https://github.com/user-attachments/assets/85a34379-2cfa-4fef-8330-7f05a33e04ec)
+![image](https://github.com/user-attachments/assets/f47deab3-3140-445a-939b-c9247a27e851)
+
+在这项工作中，我们提出了一个新颖而有效的框架EZ - AVGZL，它将视听表示与优化的文本嵌入对齐，以实现视听广义零样本学习。我们利用差分优化来学习具有最大可分性和语义保持性的更好分离的文本表示。此外，我们引入有监督的视听语言对齐来学习视听特征和文本嵌入之间的对应关系，从而捕获以类标签为提示的跨模态动态。在VGGSound - GZSL、UCF - GZSL和ActivityNet - GZSL数据集上的实验结果表明了本文方法相对于以往基线的优越性。广泛的消融研究也验证了类嵌入优化和超级的重要性
+
+### 3. Faces that Speak: Jointly Synthesising Talking Face and Speech from Text
+1. 会说话的面孔：从文本中联合合成会说话的面孔和语音
+2. 这项工作的目标是同时从文本生成自然的说话面孔和语音输出。我们通过将人脸生成 (TFG) 和文本转语音 (TTS) 系统集成到一个统一的框架中来实现这一目标。我们解决每项任务的主要挑战：（1）生成一系列代表现实世界场景的头部姿势，以及（2）尽管同一身份的面部运动存在变化，但仍确保语音一致性。为了解决这些问题，我们引入了一种基于条件流匹配的运动采样器，它能够以有效的方式生成高质量的运动代码。此外，我们还为 TTS 系统引入了一种新颖的调节方法，该方法利用 TFG 模型中的运动消除特征来产生均匀的语音输出。我们广泛的实验表明，我们的方法可以有效地创建自然的说话面孔和语音，并与输入文本精确匹配。据我们所知，这是构建一个可以泛化到不可见身份的多模态合成系统的第一次努力。
+![image](https://github.com/user-attachments/assets/8f63aee1-ea25-436f-bce7-7b3dee05732e)
+
+### 4.FaceVerse: a Fine-grained and Detail-controllable 3D Face Morphable Model from a Hybrid Dataset
+FaceVerse：来自混合数据集的细粒度和细节可控的 3D 人脸可变形模型
+1. 我们展示了 FaceVerse，这是一种细粒度的 3D 神经面部模型，它由混合东亚面部数据集构建而成，其中包含 60K 融合的 RGB-D 图像和 2K 高保真 3D 头部扫描模型。提出了一种新的从粗到细的结构，以更好地利用我们的混合数据集。在粗模组中，我们从大尺度RGB-D图像中生成了一个基础参数模型，该模型能够预测不同性别、年龄等的准确粗略3D人脸模型。然后，在精细模块中，引入了使用高保真扫描模型训练的条件 StyleGAN 架构，以丰富精细的面部几何和纹理细节。请注意，与以前的方法不同，我们的基础模块和详细模块都是可变的，这使得调整 3D 面部模型的基本属性和面部细节的创新应用成为可能。此外，我们提出了一种基于可微分渲染的单图像拟合框架。丰富的实验表明，我们的方法优于最先进的方法
+
+### Accurate 3D Face Reconstruction with Weakly-Supervised Learning: From Single Image to Image Set 
+弱监督学习的精确 3D 人脸重建：从单图像到图像集
+#### Abstract:
+1. 最近，基于深度学习的 3D 人脸重建方法在质量和效率上都显示出了可喜的结果。然而，训练深度神经网络通常需要大量数据，而具有真实 3D 人脸形状的人脸图像却很少。在本文中，我们提出了一种新颖的深度 3D 人脸重建方法，该方法 1）利用鲁棒的混合损失函数进行弱监督学习，同时考虑低级和感知级信息进行监督，2）执行多重处理通过利用来自不同图像的互补信息进行形状聚合来重建图像人脸。我们的方法快速、准确，并且对遮挡和大姿势具有鲁棒性。我们对三个数据集进行了全面的实验，系统地将我们的方法与十五种最新方法进行比较，并展示了其最先进的性能。
+#### Introduction:
+1. 无监督学习的关键是可微分图像形成过程，它通过网络预测渲染人脸图像，而监督信号来源于输入图像和渲染对应图像之间的差异。
+2. 针对一张图像：提出了一种混合水平损失函数，将图像级别和感知级别的loss 结合起来。我们还提出了一种新颖的基于肤色的光度误差注意策略，使我们的方法对遮挡和其他具有挑战性的外观变化（例如胡须和浓妆）具有进一步的鲁棒性。
+3. 针对多张图像：以无监督的方式从多个图像中学习 3D 人脸聚合。我们训练一个简单的辅助网络来生成带有身份的回归 3D 模型系数的“置信度分数”，并通过基于置信度的聚合获得最终的身份系数。尽管没有使用明确的置信度标签，但我们的方法会自动学习支持高质量（尤其是高可见度）的照片。此外，它可以利用姿势差异来更好地融合互补信息，学习更准确的 3D 形状。
+#### Preliminaries: Models and Outputs
+1. 如下图，框架由用于端到端单图像 3D 重建的 重建网络 和为基于多图像的重建而设计的 置信度测量子网 组 成。
+![image](https://github.com/user-attachments/assets/52451f5f-781c-4e38-b8e5-de5197c7df79)
+2. 使用 3DMM，脸型 S 和纹理 T 可以用仿射模型表示：Bid、Bexp 和 Bt 分别是identity、expression和texture的 PCA bases，
+![image](https://github.com/user-attachments/assets/215ea60a-7732-4212-9e30-52e04a11e8bf)
+3. Training pipeline for single image 3D face reconstruction：给定一个训练的RGB图像 I，我们使用R-Net回归一个系数向量 x，用它可以通过一些简单的、可微的数学推导来解析生成重建的图像 I′。，计算I与I'之间的混合loss。
+![image](https://github.com/user-attachments/assets/37cd1864-766a-4655-8021-77f7f4bc5db3)
+4. Training pipeline for multi-image 3D face reconstruction with shape aggregation：
+![Uploading image.png…]()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
